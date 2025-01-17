@@ -17,7 +17,11 @@ io.on("connection", (socket) => {
   socket.on("ping", (data) => {
     socket.emit("pong", new Date());
   });
-});
+
+  socket.on("draw", (data) => {
+    io.emit("draw", data);
+  });
+}); 
 
 server.listen(3000, () => {
   console.log("server running at http://localhost:3000");

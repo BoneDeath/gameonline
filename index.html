@@ -1,15 +1,55 @@
 <script src="/socket.io/socket.io.js"></script>
-
-<canvas id="canvas"> </canvas>
-
-<span id="latency"></span>
+<style>
+  body {
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
+  }
+</style>
+<canvas id="canvas"></canvas>
 
 <script>
   const socket = io();
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  let isMouseDown = false;
+  const myColor = getRandomHexColor();
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  canvas.addEventListener("mousedown", () => isMouseDown = true);
+  canvas.addEventListener("mouseup", () => isMouseDown = false);
+  canvas.addEventListener("mousemove", drawImage);
 
   socket.on("server", (msg) => {
     console.log(msg);
   });
+
+  socket.on("draw", (data) => {
+    ctx.fillStyle = data.color;
+    ctx.fillRect(data.x, data.y, 5, 5);
+  });
+
+  function drawImage(e) {
+    if (!isMouseDown) return;
+    const x = e.clientX;
+    const y = e.clientY;
+    socket.emit("draw", { x, y, color: myColor });
+  }
+
+  function getRandomHexColor() {
+    const randomColor = Math.floor(Math.random() * 16777215).toString(16);
+    return `#${randomColor.padStart(6, "0")}`;
+  }
 
   setInterval(() => {
     const startTime = Date.now();
@@ -17,7 +57,12 @@
 
     socket.once("pong", () => {
       const latency = Date.now() - startTime;
-      document.getElementById("latency").innerText = `${latency}ms`;
+
+      // Hanya membersihkan area teks ping, bukan seluruh canvas
+      ctx.clearRect(10, 20, 150, 40);
+      ctx.font = "22px Georgia";
+      ctx.fillStyle = "black";
+      ctx.fillText(`Ping: ${latency}ms`, 11, 50);
     });
   }, 1000);
 </script>

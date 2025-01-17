@@ -24,11 +24,6 @@ io.on("connection", (socket) => {
   //first emit without request from client
   io.emit("server", "connected to server");
 
-  //when ping request send pong
-  socket.on("ping", (data) => {
-    socket.emit("pong", new Date());
-  });
-
   //when client request join create new player
   socket.on("join", (id) => {
     players.push(new player(id, 0, 0));

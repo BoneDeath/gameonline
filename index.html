@@ -50,26 +50,20 @@
     console.log(msg);
   });
 
-  //when ping got callback
-  socket.on("pong", () => {
-    latency = Math.ceil(performance.now() - startTime);
-  });
-
   //when data received from request
   socket.on("update", (data) => {
     players = data;
+    latency = Math.ceil(performance.now() - startTime);
   });
 
-  //request update data
+  //request update data dan ping
   function requestServerUpdate() {
+    startTime = performance.now();
     socket.emit("update", my_id);
   }
 
   //request ping
-  function send_ping() {
-    startTime = performance.now();
-    socket.emit("ping");
-  }
+
 
   //render ping to canvas
   function render_ping() {
@@ -90,10 +84,6 @@
     });
   }
 
-  //send ping request per 1 sec
-  setInterval(send_ping, 1000);
-  //request data update
-  setInterval(requestServerUpdate, 20);
 
   //canvas render
   function update() {
@@ -103,5 +93,8 @@
 
     requestAnimationFrame(update);
   }
+
   requestAnimationFrame(update);
+  setInterval(requestServerUpdate, 20);
+
 </script>

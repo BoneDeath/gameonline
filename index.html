@@ -15,67 +15,96 @@
   const socket = io();
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
-  let isMouseDown = false;
-  const myColor = getRandomHexColor();
-  let lastUpdateTime = 0;
+  let latency = NaN;
+  let startTime;
+  let my_id = Date.now();
 
-  function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 
-  resizeCanvas();
-  window.addEventListener("resize", resizeCanvas);
+  players = [];
 
-  canvas.addEventListener("mousedown", () => (isMouseDown = true));
-  canvas.addEventListener("mouseup", () => (isMouseDown = false));
-  canvas.addEventListener("mousemove", drawImage);
+  //join as new player
+  socket.emit("join", my_id);
 
+  //movement control
+  document.onkeydown = function (e) {
+    switch (e.keyCode) {
+      case 37:
+        socket.emit("move", { id: my_id, move: "left" });
+        break;
+      case 38:
+        socket.emit("move", { id: my_id, move: "up" });
+        break;
+      case 39:
+        socket.emit("move", { id: my_id, move: "right" });
+        break;
+      case 40:
+        socket.emit("move", { id: my_id, move: "down" });
+        break;
+    }
+  };
+
+  //get server response for firstime
   socket.on("server", (msg) => {
     console.log(msg);
   });
 
-  socket.on("draw", (data) => {
-    ctx.fillStyle = data.color;
-    ctx.fillRect(data.x, data.y, 5, 5);
+  //when ping got callback
+  socket.on("pong", () => {
+    latency = Math.ceil(performance.now() - startTime);
   });
 
-  function drawImage(e) {
-    if (!isMouseDown) return;
-    const x = e.clientX;
-    const y = e.clientY;
-    socket.emit("draw", { x, y, color: myColor });
+  //when data received from request
+  socket.on("update", (data) => {
+    players = data;
+  });
+
+  //request update data
+  function requestServerUpdate() {
+    socket.emit("update", my_id);
   }
 
-  function getRandomHexColor() {
-    const randomColor = Math.floor(Math.random() * 16777215).toString(16);
-    return `#${randomColor.padStart(6, "0")}`;
+  //request ping
+  function send_ping() {
+    startTime = performance.now();
+    socket.emit("ping");
   }
 
-  function draw_ping(delay) {
-    setTimeout(() => {
-      const startTime = Date.now();
-      socket.emit("ping");
-
-      socket.once("pong", () => {
-        const latency = Date.now() - startTime;
-        ctx.clearRect(10, 20, 150, 40);
-        ctx.font = "22px Georgia";
-        ctx.fillStyle = "black";
-        ctx.fillText(`Ping: ${latency}ms`, 11, 50);
-      });
-    }, delay);
+  //render ping to canvas
+  function render_ping() {
+    ctx.font = "16px monospace";
+    ctx.fillStyle = "black";
+    ctx.fillText(`speed: ${latency}ms`, 11, 50);
   }
 
-  function drawVector(delay) {
-    setTimeout(() => {}, delay);
+  //render all players to canvas
+  function render_players() {
+    players.forEach((data) => {
+      ctx.fillRect(data.x, data.y, 50, 50);
+      ctx.fillText(
+        data.id == my_id ? "you" : "id:" + data.id,
+        data.x,
+        data.y - 5
+      );
+    });
   }
 
+  //canvas render
   function update() {
-    drawVector(1000);
-    draw_ping(1000);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    render_ping();
+    render_players();
+
+    //data request from server perframe is to overkill
+    requestServerUpdate();
+
     requestAnimationFrame(update);
   }
 
   requestAnimationFrame(update);
+
+  //send ping request per 1 sec
+  setInterval(send_ping, 1000);
+  // setInterval(requestServerUpdate, 60);
 </script>

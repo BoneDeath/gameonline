@@ -1,0 +1,23 @@
+<script src="/socket.io/socket.io.js"></script>
+
+<canvas id="canvas"> </canvas>
+
+<span id="latency"></span>
+
+<script>
+  const socket = io();
+
+  socket.on("server", (msg) => {
+    console.log(msg);
+  });
+
+  setInterval(() => {
+    const startTime = Date.now();
+    socket.emit("ping");
+
+    socket.once("pong", () => {
+      const latency = Date.now() - startTime;
+      document.getElementById("latency").innerText = `${latency}ms`;
+    });
+  }, 1000);
+</script>

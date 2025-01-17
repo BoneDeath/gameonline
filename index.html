@@ -17,6 +17,7 @@
   const ctx = canvas.getContext("2d");
   let isMouseDown = false;
   const myColor = getRandomHexColor();
+  let lastUpdateTime = 0;
 
   function resizeCanvas() {
     canvas.width = window.innerWidth;
@@ -24,10 +25,10 @@
   }
 
   resizeCanvas();
-  window.addEventListener('resize', resizeCanvas);
+  window.addEventListener("resize", resizeCanvas);
 
-  canvas.addEventListener("mousedown", () => isMouseDown = true);
-  canvas.addEventListener("mouseup", () => isMouseDown = false);
+  canvas.addEventListener("mousedown", () => (isMouseDown = true));
+  canvas.addEventListener("mouseup", () => (isMouseDown = false));
   canvas.addEventListener("mousemove", drawImage);
 
   socket.on("server", (msg) => {
@@ -51,18 +52,30 @@
     return `#${randomColor.padStart(6, "0")}`;
   }
 
-  setInterval(() => {
-    const startTime = Date.now();
-    socket.emit("ping");
+  function draw_ping(delay) {
+    setTimeout(() => {
+      const startTime = Date.now();
+      socket.emit("ping");
 
-    socket.once("pong", () => {
-      const latency = Date.now() - startTime;
+      socket.once("pong", () => {
+        const latency = Date.now() - startTime;
+        ctx.clearRect(10, 20, 150, 40);
+        ctx.font = "22px Georgia";
+        ctx.fillStyle = "black";
+        ctx.fillText(`Ping: ${latency}ms`, 11, 50);
+      });
+    }, delay);
+  }
 
-      // Hanya membersihkan area teks ping, bukan seluruh canvas
-      ctx.clearRect(10, 20, 150, 40);
-      ctx.font = "22px Georgia";
-      ctx.fillStyle = "black";
-      ctx.fillText(`Ping: ${latency}ms`, 11, 50);
-    });
-  }, 1000);
+  function drawVector(delay) {
+    setTimeout(() => {}, delay);
+  }
+
+  function update() {
+    drawVector(1000);
+    draw_ping(1000);
+    requestAnimationFrame(update);
+  }
+
+  requestAnimationFrame(update);
 </script>

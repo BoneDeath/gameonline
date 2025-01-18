@@ -11,90 +11,87 @@
 </style>
 <canvas id="canvas"></canvas>
 
-
-
 <script>
+  const socket = io();
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  let latency = NaN;
+  let startTime;
+  let my_id = Date.now();
 
-const socket = io();
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-let latency = NaN;
-let startTime;
-let my_id = Date.now();
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+  players = [];
 
-players = [];
+  //join as new player
+  socket.emit("join", my_id);
 
-//join as new player
-socket.emit("join", my_id);
+  //movement control
+  document.onkeydown = function (e) {
+    switch (e.keyCode) {
+      case 37:
+        socket.emit("move", { id: my_id, move: "left" });
+        break;
+      case 38:
+        socket.emit("move", { id: my_id, move: "up" });
+        break;
+      case 39:
+        socket.emit("move", { id: my_id, move: "right" });
+        break;
+      case 40:
+        socket.emit("move", { id: my_id, move: "down" });
+        break;
+    }
+  };
 
-//movement control
-document.onkeydown = function (e) {
-  switch (e.keyCode) {
-    case 37:
-      socket.emit("move", { id: my_id, move: "left" });
-      break;
-    case 38:
-      socket.emit("move", { id: my_id, move: "up" });
-      break;
-    case 39:
-      socket.emit("move", { id: my_id, move: "right" });
-      break;
-    case 40:
-      socket.emit("move", { id: my_id, move: "down" });
-      break;
-  }
-};
-
-//get server response for firstime
-socket.on("server", (msg) => {
-  console.log(msg);
-});
-
-//when data received from request
-socket.on("update", (data) => {
-  players = data;
-  latency = Math.ceil(performance.now() - startTime);
-});
-
-//request update data dan ping
-function requestServerUpdate() {
-  startTime = performance.now();
-  socket.emit("update", my_id);
-}
-
-//request ping
-
-//render ping to canvas
-function render_ping() {
-  ctx.font = "16px monospace";
-  ctx.fillStyle = "black";
-  ctx.fillText(`speed: ${latency}ms`, 11, 50);
-}
-
-//render all players to canvas
-function render_players() {
-  players.forEach((data) => {
-    ctx.fillRect(data.x, data.y, 50, 50);
-    ctx.fillText(
-      data.id == my_id ? "you" : "id:" + data.id,
-      data.x,
-      data.y - 5
-    );
+  //get server response for firstime
+  socket.on("server", (msg) => {
+    console.log(msg);
   });
-}
 
-//canvas render
-function update() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  render_ping();
-  render_players();
+  //when data received from request
+  socket.on("update", (data) => {
+    players = data;
+    latency = Math.ceil(performance.now() - startTime);
+  });
+
+  //request update data dan ping
+  function requestServerUpdate() {
+    startTime = performance.now();
+    socket.emit("update", my_id);
+  }
+
+  //request ping
+
+  //render ping to canvas
+  function render_ping() {
+    ctx.font = "16px monospace";
+    ctx.fillStyle = "black";
+    ctx.fillText(`speed: ${latency}ms`, 11, 50);
+  }
+
+  //render all players to canvas
+  function render_players() {
+    players.forEach((data) => {
+      ctx.fillRect(data.x, data.y, 50, 50);
+      ctx.fillText(
+        data.id == my_id ? "you" : "id:" + data.id,
+        data.x,
+        data.y - 5
+      );
+    });
+  }
+
+  //canvas render
+  function update() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    render_ping();
+    render_players();
+
+    requestAnimationFrame(update);
+  }
 
   requestAnimationFrame(update);
-}
-
-requestAnimationFrame(update);
-setInterval(requestServerUpdate, 20);
+  setInterval(requestServerUpdate, 20);
 </script>

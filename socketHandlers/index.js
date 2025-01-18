@@ -1,10 +1,23 @@
-// socketHandlers.js
-const players = [];
+const players =[];
 
-function Player(id, x, y) {
-  this.id = id;
-  this.x = x;
-  this.y = y;
+function updatePlayerPosition(id, move) {
+  const me = players.find(player =>player.id == id);
+  if (me) {
+    switch (move) {
+      case "left":
+        me.x -= 1;
+        break;
+      case "up":
+        me.y -= 1;
+        break;
+      case "right":
+        me.x += 1;
+        break;
+      case "down":
+        me.y += 1;
+        break;
+    }
+  }
 }
 
 module.exports = (io) => {
@@ -12,7 +25,7 @@ module.exports = (io) => {
     io.emit("server", "connected to server");
 
     socket.on("join", (id) => {
-      players.push(new Player(id, 0, 0));
+      players.push({ id, x: 0, y: 0 });
     });
 
     socket.on("update", () => {
@@ -20,22 +33,8 @@ module.exports = (io) => {
     });
 
     socket.on("move", (data) => {
-      const me = players.find((player) => player.id === data.id);
-      if (me) {
-        switch (data.move) {
-          case "left":
-            me.x -= 1;
-            break;
-          case "up":
-            me.y -= 1;
-            break;
-          case "right":
-            me.x += 1;
-            break;
-          case "down":
-            me.y += 1;
-            break;
-        }
+      if (data && data.id && data.move) {
+        updatePlayerPosition(data.id, data.move);
       }
     });
   });

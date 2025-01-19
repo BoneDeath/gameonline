@@ -17,18 +17,16 @@
   const ctx = canvas.getContext("2d");
   let latency = NaN;
   let startTime;
-  let my_id=Date.now();
-
+  let my_id = Date.now();
 
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
   players = [];
-  world = {};
-  camera = {};
+  world = {width:2000,height:2000};
   playerCanvas = { width: canvas.width, height: canvas.height };
+  camera = { x: 0, y: 0, width: canvas.width, height: canvas.height };
 
-  socket.emit("canvas", playerCanvas);
   socket.emit("join", my_id);
 
   //movement control
@@ -49,6 +47,18 @@
     }
   };
 
+  function updateCamera() {
+    const me = players.find((player) => player.id == my_id);
+    camera.x = Math.max(
+      0,
+      Math.min(world.width - camera.width, me.x - camera.width / 2)
+    );
+    camera.y = Math.max(
+      0,
+      Math.min(world.height - camera.height, me.y - camera.height / 2)
+    );
+  }
+
   //get server response for firstime
   socket.on("server", (msg) => {
     console.log(msg);
@@ -68,7 +78,7 @@
   socket.on("update", (data) => {
     players = data;
     latency = Math.ceil(performance.now() - startTime);
-    // console.log(data)
+    updateCamera();
   });
 
   //request update data dan ping
@@ -92,14 +102,14 @@
   //render all players to canvas
   function render_players() {
     players.forEach((data) => {
-      ctx.fillStyle = (data.id==my_id)?"#22aaff":"#ff22aa";
+      ctx.fillStyle = data.id == my_id ? "#22aaff" : "#ff22aa";
       ctx.fillRect(
         data.x - camera.x,
         data.y - camera.y,
         data.width,
         data.height
       );
-      ctx.fillStyle="#000000"
+      ctx.fillStyle = "#000000";
       ctx.fillText(
         data.id == my_id ? "you" : "id:" + data.id,
         data.x - camera.x,

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Camera Follow Character</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      // Posisi awal karakter
+      let character = { x: 400, y: 300, width: 50, height: 50, speed: 5 };
+
+      // Posisi awal kamera
+      let camera = { x: 0, y: 0, width: canvas.width, height: canvas.height };
+
+      // Ukuran dunia game
+      const world = { width: 2000, height: 2000 };
+
+      // Objek lain di dunia
+      const objects = [
+        { x: 600, y: 400, width: 100, height: 100, color: "red" },
+        { x: 1200, y: 800, width: 150, height: 150, color: "yellow" },
+        { x: 300, y: 1000, width: 80, height: 80, color: "purple" },
+      ];
+
+      // Gambar karakter
+      function drawCharacter() {
+        ctx.fillStyle = "blue";
+        ctx.fillRect(
+          character.x - camera.x,
+          character.y - camera.y,
+          character.width,
+          character.height
+        );
+      }
+
+      // Gambar objek lain
+      function drawObjects() {
+        objects.forEach((obj) => {
+          ctx.fillStyle = obj.color;
+          ctx.fillRect(
+            obj.x - camera.x,
+            obj.y - camera.y,
+            obj.width,
+            obj.height
+          );
+        });
+      }
+
+      // Gambar latar belakang dunia
+      function drawWorld() {
+        ctx.fillStyle = "lightgreen";
+        ctx.fillRect(0 - camera.x, 0 - camera.y, world.width, world.height);
+      }
+
+      // Perbarui posisi kamera agar mengikuti karakter
+      function updateCamera() {
+        camera.x = Math.max(
+          0,
+          Math.min(world.width - camera.width, character.x - camera.width / 2)
+        );
+        camera.y = Math.max(
+          0,
+          Math.min(
+            world.height - camera.height,
+            character.y - camera.height / 2
+          )
+        );
+      }
+
+      // Tambahkan pergerakan karakter berdasarkan input
+      document.addEventListener("keydown", (e) => {
+        switch (e.key) {
+          case "ArrowUp":
+            character.y = Math.max(0, character.y - character.speed);
+            break;
+          case "ArrowDown":
+            character.y = Math.min(
+              world.height - character.height,
+              character.y + character.speed
+            );
+            break;
+          case "ArrowLeft":
+            character.x = Math.max(0, character.x - character.speed);
+            break;
+          case "ArrowRight":
+            character.x = Math.min(
+              world.width - character.width,
+              character.x + character.speed
+            );
+            break;
+        }
+      });
+
+      // Render ulang canvas setiap frame
+      function gameLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height); // Bersihkan canvas
+        drawWorld(); // Gambar dunia
+        drawObjects(); // Gambar objek lain
+        updateCamera(); // Perbarui posisi kamera
+        drawCharacter(); // Gambar karakter
+        requestAnimationFrame(gameLoop); // Loop animasi
+      }
+
+      gameLoop();
+    </script>
+  </body>
+</html>

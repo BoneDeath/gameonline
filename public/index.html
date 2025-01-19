@@ -17,14 +17,18 @@
   const ctx = canvas.getContext("2d");
   let latency = NaN;
   let startTime;
-  let my_id = Date.now();
+  let my_id=Date.now();
+
 
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
   players = [];
+  world = {};
+  camera = {};
+  playerCanvas = { width: canvas.width, height: canvas.height };
 
-  //join as new player
+  socket.emit("canvas", playerCanvas);
   socket.emit("join", my_id);
 
   //movement control
@@ -50,10 +54,21 @@
     console.log(msg);
   });
 
+  //get server response for firstime
+  socket.on("world", (data) => {
+    world = data;
+  });
+
+  //get server response for firstime
+  socket.on("camera", (data) => {
+    camera = data;
+  });
+
   //when data received from request
   socket.on("update", (data) => {
     players = data;
     latency = Math.ceil(performance.now() - startTime);
+    // console.log(data)
   });
 
   //request update data dan ping
@@ -62,23 +77,33 @@
     socket.emit("update", my_id);
   }
 
-  //request ping
-
   //render ping to canvas
   function render_ping() {
     ctx.font = "16px monospace";
     ctx.fillStyle = "black";
-    ctx.fillText(`speed: ${latency}ms`, 11, 50);
+    ctx.fillText(`id: ${my_id} speed: ${latency}ms`, 11, 50);
+  }
+
+  function drawWorld() {
+    ctx.fillStyle = "lightgreen";
+    ctx.fillRect(0 - camera.x, 0 - camera.y, world.width, world.height);
   }
 
   //render all players to canvas
   function render_players() {
     players.forEach((data) => {
-      ctx.fillRect(data.x, data.y, 50, 50);
+      ctx.fillStyle = (data.id==my_id)?"#22aaff":"#ff22aa";
+      ctx.fillRect(
+        data.x - camera.x,
+        data.y - camera.y,
+        data.width,
+        data.height
+      );
+      ctx.fillStyle="#000000"
       ctx.fillText(
         data.id == my_id ? "you" : "id:" + data.id,
-        data.x,
-        data.y - 5
+        data.x - camera.x,
+        data.y - 5 - camera.y
       );
     });
   }
@@ -86,9 +111,9 @@
   //canvas render
   function update() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawWorld();
     render_ping();
     render_players();
-
     requestAnimationFrame(update);
   }
 

@@ -21,21 +21,12 @@
     default: "#333333", // Warna default
   };
 
-
   let latency = NaN;
   let startTime;
   let my_id = Date.now();
 
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-
-  mouse = {
-    x: 0,
-    y: 0,
-    width: 0,
-    height: 0,
-    isClicked: false,
-  };
 
   world = { width: 2000, height: 2000 };
   map = [
@@ -196,7 +187,6 @@
       0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1,
     ],
   ];
-
   tileSize = {
     width: world.width / map[0].length,
     height: world.height / map.length,
@@ -204,7 +194,13 @@
 
   players = [];
   camera = { x: 0, y: 0, width: canvas.width, height: canvas.height };
-
+  mouse = {
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    isClicked: false,
+  };
   //event listener
   canvas.addEventListener("mousedown", (event) =>
     updateMouseEvent(event, true)
@@ -213,14 +209,6 @@
     mouse.isMouseClick ? updateMouseEvent(event, true) : ""
   );
   canvas.addEventListener("mouseup", (event) => updateMouseEvent(event, false));
-
-
-  //mouse data updater
-  function updateMouseEvent(e, isMouseClick) {
-    mouse.isMouseClick = isMouseClick;
-    mouse.x = e.clientX;
-    mouse.y = e.clientY;
-  }
 
   //movement control
   document.onkeydown = function (e) {
@@ -243,6 +231,13 @@
         break;
     }
   };
+
+  //mouse data updater
+  function updateMouseEvent(e, isMouseClick) {
+    mouse.isMouseClick = isMouseClick;
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+  }
 
   //camera resolver
   function updateCamera() {
@@ -349,10 +344,8 @@
     requestAnimationFrame(update);
   }
 
-
   //send join to server to create new player
   socket.emit("join", my_id);
-
 
   //get server response for firstime
   socket.on("server", (msg) => {
@@ -375,8 +368,6 @@
     latency = Math.ceil(performance.now() - startTime);
     updateCamera();
   });
-
-
 
   requestAnimationFrame(update);
   setInterval(requestServerUpdate, 20);

@@ -220,16 +220,16 @@
   //movement control
   document.onkeydown = function (e) {
     switch (e.keyCode) {
-      case 37:
+      case 37 || 97:
         socket.emit("move", { id: my_id, move: "left" });
         break;
-      case 38:
+      case 38 || 119:
         socket.emit("move", { id: my_id, move: "up" });
         break;
-      case 39:
+      case 39 || 100:
         socket.emit("move", { id: my_id, move: "right" });
         break;
-      case 40:
+      case 40 || 115:
         socket.emit("move", { id: my_id, move: "down" });
         break;
     }

@@ -1,6 +1,14 @@
 const players = [];
-let world = { width: 2000, height: 2000 };
-
+const worldTiles = { x: 100, y: 60 };
+const tileSize = {
+  width: 40,
+  height: 40,
+};
+const world = {
+  width: worldTiles.x * tileSize.width,
+  height: worldTiles.y * tileSize.height,
+};
+map = [[]];
 
 module.exports = (io) => {
   myio = io;
@@ -8,13 +16,15 @@ module.exports = (io) => {
     io.emit("server", "connected online " + players.length);
     io.emit("world", world);
 
+    //create new player if join request
     socket.on("join", (id) => {
       const me = players.find((player) => player.id == id);
       if (!me) {
-        players.push({ id, x: 0, y: 0, width: 50, height: 50, speed: 5 });
+        players.push({ id, x: 0, y: 0, width: tileSize.width, height: tileSize.height, speed: 5 });
       }
     });
 
+    //send players data updater
     socket.on("update", () => {
       io.emit("update", players);
     });
@@ -27,6 +37,7 @@ module.exports = (io) => {
   });
 };
 
+//player movement
 function updatePlayerPosition(id, move) {
   const me = players.find((player) => player.id == id);
 

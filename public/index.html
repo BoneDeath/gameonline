@@ -310,7 +310,7 @@
         // ambil tile yang sesuai dengan posisi mouse klik, bisa menggunakan map[tileX][tileY]
         if (mouse.isMouseClick && isRectCollide(tile, mouse)) {
           ctx.fillStyle = "#ff0000";
-          console.log(`tile= ${tileX},${$tileY}  clicked`);
+          console.log(`tile= ${tileX},${tileY}  clicked`);
         }
 
         ctx.fillRect(tile.x, tile.y, tile.width, tile.height);

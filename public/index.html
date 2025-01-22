@@ -189,6 +189,13 @@
     ],
   ];
 
+  // Cache untuk menyimpan warna berdasarkan nilai tile bisa dirubah dengan texture/spritemaps
+  const tileColorCache = {
+    0: "#ffffff", // Warna untuk tile dengan nilai 0
+    1: "#444444", // Warna untuk tile dengan nilai 1
+    default: "#333333", // Warna default
+  };
+
   function gerakMouse(e) {
     mouse.x = e.clientX;
     mouse.y = e.clientY;
@@ -268,42 +275,44 @@
     ctx.fillStyle = "black";
     ctx.fillText(`id: ${my_id} speed: ${latency}ms`, 11, 50);
   }
-function drawWorld() {
+  function drawWorld() {
+    //hanya render tile yang didalam kamera yang dilooping dari map[][]
+    const startX = Math.max(0, Math.floor(camera.x / tileSize.width));
+    const startY = Math.max(0, Math.floor(camera.y / tileSize.height));
+    const endX = Math.min(
+      map[0].length,
+      Math.ceil((camera.x + canvas.width) / tileSize.width)
+    );
+    const endY = Math.min(
+      map.length,
+      Math.ceil((camera.y + canvas.height) / tileSize.height)
+    );
 
-  //hanya render tile yang didalam kamera yang dilooping dari map[][]
-  const startX = Math.max(0, Math.floor(camera.x / tileSize.width));
-  const startY = Math.max(0, Math.floor(camera.y / tileSize.height));
-  const endX = Math.min(map[0].length, Math.ceil((camera.x + canvas.width) / tileSize.width));
-  const endY = Math.min(map.length, Math.ceil((camera.y + canvas.height) / tileSize.height));
+    for (let tileY = startY; tileY < endY; tileY++) {
+      for (let tileX = startX; tileX < endX; tileX++) {
+        const tile = {
+          x: tileX * tileSize.width - camera.x,
+          y: tileY * tileSize.height - camera.y,
+          width: tileSize.width,
+          height: tileSize.height,
+        };
 
-  for (let tileY = startY; tileY < endY; tileY++) {
-    for (let tileX = startX; tileX < endX; tileX++) {
-      const tile = {
-        x: tileX * tileSize.width - camera.x,
-        y: tileY * tileSize.height - camera.y,
-        width: tileSize.width,
-        height: tileSize.height,
-      };
+        // Ambil warna dari cache berdasarkan nilai tile
+        const tileValue = map[tileY][tileX];
+        ctx.fillStyle = tileColorCache[tileValue] || tileColorCache.default;
 
-      // Set fillStyle based on map value sprite for next time 
-      switch (map[tileY][tileX]) {
-        case 0: ctx.fillStyle = "#ffffff"; break;
-        case 1: ctx.fillStyle = "#444444"; break;
-        default: ctx.fillStyle = "#333333"; break;
+        // ambil tile yang sesuai dengan posisi mouse, bisa menggunakan map[tileX][tileY]
+        if (isRectCollide(tile, mouse)) {
+          ctx.fillStyle = "#ff0000";
+        }
+
+        ctx.fillRect(tile.x, tile.y, tile.width, tile.height);
       }
-
-      // ambil tile yang sesuai dengan posisi mouse, bisa menggunakan map[tileX][tileY]
-      if (isRectCollide(tile, mouse)) {
-        ctx.fillStyle = "#ff0000";
-      }
-
-      ctx.fillRect(tile.x, tile.y, tile.width, tile.height);
     }
-  }
 
-  // Render mouse tile
-  ctx.fillRect(mouse.x, mouse.y, mouse.width, mouse.height);
-}
+    // Render mouse tile
+    ctx.fillRect(mouse.x, mouse.y, mouse.width, mouse.height);
+  }
 
   //render all players to canvas
   function render_players() {

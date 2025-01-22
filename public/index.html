@@ -27,7 +27,7 @@
     y: 0,
     width: 0,
     height: 0,
-    isClicked:false,
+    isClicked: false,
   };
 
   world = { width: 2000, height: 2000 };
@@ -197,12 +197,16 @@
     default: "#333333", // Warna default
   };
 
-  canvas.addEventListener("mousedown", (event) => (updateMouseEvent(event,true)));
-  canvas.addEventListener("mousemove", (event) => ((mouse.isMouseClick)?updateMouseEvent(event,true):''));
-  canvas.addEventListener("mouseup", (event) => (updateMouseEvent(event,false)));
+  canvas.addEventListener("mousedown", (event) =>
+    updateMouseEvent(event, true)
+  );
+  canvas.addEventListener("mousemove", (event) =>
+    mouse.isMouseClick ? updateMouseEvent(event, true) : ""
+  );
+  canvas.addEventListener("mouseup", (event) => updateMouseEvent(event, false));
 
-  function updateMouseEvent(e,isMouseClick) {
-    mouse.isMouseClick=isMouseClick;
+  function updateMouseEvent(e, isMouseClick) {
+    mouse.isMouseClick = isMouseClick;
     mouse.x = e.clientX;
     mouse.y = e.clientY;
   }
@@ -220,20 +224,20 @@
   //movement control
   document.onkeydown = function (e) {
     switch (e.keyCode) {
-      case 37:
-      case 97:
+      case 37: // Arrow Left
+      case 65: // 'A'
         socket.emit("move", { id: my_id, move: "left" });
         break;
-      case 38:
-      case 119:
+      case 38: // Arrow Up
+      case 87: // 'W'
         socket.emit("move", { id: my_id, move: "up" });
         break;
-      case 39:
-      case 100:
+      case 39: // Arrow Right
+      case 68: // 'D'
         socket.emit("move", { id: my_id, move: "right" });
         break;
-      case 40:
-      case 115:
+      case 40: // Arrow Down
+      case 83: // 'S'
         socket.emit("move", { id: my_id, move: "down" });
         break;
     }

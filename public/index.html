@@ -190,26 +190,6 @@
     ],
   ];
 
-  // Cache untuk menyimpan warna berdasarkan nilai tile bisa dirubah dengan texture/spritemaps
-  const tileColorCache = {
-    0: "#ffffff", // Warna untuk tile dengan nilai 0
-    1: "#444444", // Warna untuk tile dengan nilai 1
-    default: "#333333", // Warna default
-  };
-
-  canvas.addEventListener("mousedown", (event) =>
-    updateMouseEvent(event, true)
-  );
-  canvas.addEventListener("mousemove", (event) =>
-    mouse.isMouseClick ? updateMouseEvent(event, true) : ""
-  );
-  canvas.addEventListener("mouseup", (event) => updateMouseEvent(event, false));
-
-  function updateMouseEvent(e, isMouseClick) {
-    mouse.isMouseClick = isMouseClick;
-    mouse.x = e.clientX;
-    mouse.y = e.clientY;
-  }
 
   tileSize = {
     width: world.width / map[0].length,
@@ -219,7 +199,22 @@
   players = [];
   camera = { x: 0, y: 0, width: canvas.width, height: canvas.height };
 
-  socket.emit("join", my_id);
+  //event listener
+  canvas.addEventListener("mousedown", (event) =>
+    updateMouseEvent(event, true)
+  );
+  canvas.addEventListener("mousemove", (event) =>
+    mouse.isMouseClick ? updateMouseEvent(event, true) : ""
+  );
+  canvas.addEventListener("mouseup", (event) => updateMouseEvent(event, false));
+
+
+  //mouse data updater
+  function updateMouseEvent(e, isMouseClick) {
+    mouse.isMouseClick = isMouseClick;
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+  }
 
   //movement control
   document.onkeydown = function (e) {
@@ -243,6 +238,7 @@
     }
   };
 
+  //camera resolver
   function updateCamera() {
     const me = players.find((player) => player.id == my_id);
     camera.x = Math.max(
@@ -254,28 +250,6 @@
       Math.min(world.height - camera.height, me.y - camera.height / 2)
     );
   }
-
-  //get server response for firstime
-  socket.on("server", (msg) => {
-    console.log(msg);
-  });
-
-  //get server response for firstime
-  socket.on("world", (data) => {
-    world = data;
-  });
-
-  //get server response for firstime
-  socket.on("camera", (data) => {
-    camera = data;
-  });
-
-  //when data received from request
-  socket.on("update", (data) => {
-    players = data;
-    latency = Math.ceil(performance.now() - startTime);
-    updateCamera();
-  });
 
   //request update data dan ping
   function requestServerUpdate() {
@@ -289,6 +263,8 @@
     ctx.fillStyle = "black";
     ctx.fillText(`id: ${my_id} speed: ${latency}ms`, 11, 50);
   }
+  
+  //world renderer
   function drawWorld() {
     //hanya render tile yang didalam kamera yang dilooping dari map[][]
     const startX = Math.max(0, Math.floor(camera.x / tileSize.width));
@@ -348,6 +324,7 @@
     });
   }
 
+  //rect collider detection
   function isRectCollide(target1, target2) {
     return (
       target1.x < target2.x + target2.width && // Kanan target1 tidak melewati kiri target2
@@ -365,6 +342,35 @@
     render_players();
     requestAnimationFrame(update);
   }
+
+
+  //send join to server to create new player
+  socket.emit("join", my_id);
+  
+
+  //get server response for firstime
+  socket.on("server", (msg) => {
+    console.log(msg);
+  });
+
+  //get server response for firstime
+  socket.on("world", (data) => {
+    world = data;
+  });
+
+  //get server response for firstime
+  socket.on("camera", (data) => {
+    camera = data;
+  });
+
+  //when data received from request
+  socket.on("update", (data) => {
+    players = data;
+    latency = Math.ceil(performance.now() - startTime);
+    updateCamera();
+  });
+
+
 
   requestAnimationFrame(update);
   setInterval(requestServerUpdate, 20);

@@ -9,7 +9,7 @@
     display: block;
   }
 </style>
-<canvas id="canvas" onmousemove="gerakMouse(event)"></canvas>
+<canvas id="canvas"></canvas>
 
 <script>
   const socket = io();
@@ -27,6 +27,7 @@
     y: 0,
     width: 0,
     height: 0,
+    isClicked:false,
   };
 
   world = { width: 2000, height: 2000 };
@@ -196,7 +197,12 @@
     default: "#333333", // Warna default
   };
 
-  function gerakMouse(e) {
+  canvas.addEventListener("mousedown", (event) => (updateMouseEvent(event,true)));
+  canvas.addEventListener("mousemove", (event) => ((mouse.isMouseClick)?updateMouseEvent(event,true):''));
+  canvas.addEventListener("mouseup", (event) => (updateMouseEvent(event,false)));
+
+  function updateMouseEvent(e,isMouseClick) {
+    mouse.isMouseClick=isMouseClick;
     mouse.x = e.clientX;
     mouse.y = e.clientY;
   }
@@ -301,9 +307,10 @@
         const tileValue = map[tileY][tileX];
         ctx.fillStyle = tileColorCache[tileValue] || tileColorCache.default;
 
-        // ambil tile yang sesuai dengan posisi mouse, bisa menggunakan map[tileX][tileY]
-        if (isRectCollide(tile, mouse)) {
+        // ambil tile yang sesuai dengan posisi mouse klik, bisa menggunakan map[tileX][tileY]
+        if (mouse.isMouseClick && isRectCollide(tile, mouse)) {
           ctx.fillStyle = "#ff0000";
+          console.log(`tile= ${tileX},${$tileY}  clicked`);
         }
 
         ctx.fillRect(tile.x, tile.y, tile.width, tile.height);

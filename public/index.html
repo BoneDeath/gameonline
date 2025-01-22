@@ -270,9 +270,7 @@
   }
 
   function drawWorld() {
-    // ctx.fillStyle = "lightgreen";
-    // ctx.fillRect(0 - camera.x, 0 - camera.y, world.width, world.height);
-
+    //render world tiles
     for (tileY = 0; tileY < map.length; tileY++) {
       for (tileX = 0; tileX < map[tileY].length; tileX++) {
         const tile = {
@@ -282,6 +280,7 @@
           height: tileSize.height,
         };
 
+        //getTile array[][] by mouse location
         if (isRectCollide(tile, mouse)) {
           ctx.fillStyle = "#ff0000";
         } else {
@@ -302,6 +301,7 @@
       }
     }
 
+    //get mouse current tiles
     ctx.fillRect(mouse.x, mouse.y, mouse.width, mouse.height);
   }
 

@@ -16,9 +16,11 @@
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
   const tileColorCache = {
-    0: "#ffffff", // Warna untuk tile dengan nilai 0
-    1: "#444444", // Warna untuk tile dengan nilai 1
-    default: "#333333", // Warna default
+    0: "skyblue", // Empty space
+    1: "#56341b", // Ground (dirt)
+    2: "silver", // Rock
+    3: "orange", // lava
+    default: "#333333", // Default tile color
   };
 
   let latency = NaN;
@@ -30,14 +32,15 @@
 
   worldTiles = { x: 100, y: 60 };
   tileSize = {
-    width: 20,
-    height: 20,
+    width: 40,
+    height: 40,
   };
   world = {
     width: worldTiles.x * tileSize.width,
     height: worldTiles.y * tileSize.height,
   };
-  map = [[]];
+  let map = generateWorldMap();
+  console.log(map)
 
   players = [];
   camera = { x: 0, y: 0, width: canvas.width, height: canvas.height };
@@ -152,6 +155,44 @@
     // Render mouse tile
     ctx.fillRect(mouse.x, mouse.y, mouse.width, mouse.height);
   }
+
+  // Fungsi untuk membuat dan memodifikasi peta
+function generateWorldMap() {
+  const sky = 20;
+  const rocks = 30*3;
+  const lavas = 30*6;
+  const dirtStartY = 20;
+  const rockStartY = 21;  // Mengubah startY untuk rock menjadi 21
+  const lavaStartY = 40;  // Mengubah startY untuk lava menjadi 51
+
+  // Membuat peta kosong
+  const map = Array.from({ length: worldTiles.y }, () =>
+    Array(worldTiles.x).fill(0)
+  );
+
+  // Menambahkan lapisan tanah (dirt) di bagian bawah peta
+  for (let y = dirtStartY; y < worldTiles.y; y++) {
+    for (let x = 0; x < worldTiles.x; x++) {
+      map[y][x] = 1; // Dirt
+    }
+  }
+
+  // Menambahkan blok batu (rock) secara acak di area yang sesuai
+  for (let i = 0; i < rocks; i++) {
+    const randomX = Math.floor(Math.random() * worldTiles.x);
+    const randomY = Math.floor(Math.random() * (worldTiles.y - rockStartY)) + rockStartY;
+    map[randomY][randomX] = 2; // Rock
+  }
+
+  // Menambahkan blok lava secara acak di area yang sesuai
+  for (let i = 0; i < lavas; i++) {
+    const randomX = Math.floor(Math.random() * worldTiles.x);
+    const randomY = Math.floor(Math.random() * (worldTiles.y - lavaStartY)) + lavaStartY;
+    map[randomY][randomX] = 3; // Lava
+  }
+
+  return map;
+}
 
   //render all players to canvas
   function render_players() {

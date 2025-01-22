@@ -15,6 +15,13 @@
   const socket = io();
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
+  const tileColorCache = {
+    0: "#ffffff", // Warna untuk tile dengan nilai 0
+    1: "#444444", // Warna untuk tile dengan nilai 1
+    default: "#333333", // Warna default
+  };
+
+
   let latency = NaN;
   let startTime;
   let my_id = Date.now();
@@ -190,7 +197,6 @@
     ],
   ];
 
-
   tileSize = {
     width: world.width / map[0].length,
     height: world.height / map.length,
@@ -346,7 +352,7 @@
 
   //send join to server to create new player
   socket.emit("join", my_id);
-  
+
 
   //get server response for firstime
   socket.on("server", (msg) => {

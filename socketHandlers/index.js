@@ -8,7 +8,7 @@ world = {
   width: 4000, //tileSize.width*worldTiles.x
   height: 2400, //tilesSize.height*worldTiles.y
 };
-let map =[[]];
+let map = [[]];
 
 module.exports = (io) => {
   myio = io;
@@ -33,13 +33,18 @@ module.exports = (io) => {
 
     //create new player if join request
     socket.on("load_world", (id) => {
-      if(id==""){
-        //map=loadMapFromDB        
-      }else{
-        map=generateWorldMap()
+      if (id == "") {
+        //map=loadMapFromDB
+      } else {
+        map = generateWorldMap();
       }
+      //send generaterd world to user
+      io.emit("load_world", map);
+    });
 
-      io.emit("load_world",map)
+    //create new player if join request
+    socket.on("click_tile", (mouse) => {
+      console.log(mouse);
     });
 
     //send players data updater

@@ -55,7 +55,7 @@
     updateMouseEvent(event, true)
   );
   canvas.addEventListener("mousemove", (event) =>
-    mouse.isMouseClick ? updateMouseEvent(event, true) : ""
+    updateMouseEvent(event, mouse.isClicked)
   );
   canvas.addEventListener("mouseup", (event) => updateMouseEvent(event, false));
 
@@ -83,9 +83,12 @@
 
   //mouse data updater
   function updateMouseEvent(e, isMouseClick) {
-    mouse.isMouseClick = isMouseClick;
+    mouse.isClicked = isMouseClick;
     mouse.x = e.clientX;
     mouse.y = e.clientY;
+    if(isMouseClick){
+      socket.emit("click_tile",mouse);
+    }
   }
 
   //camera resolver
@@ -136,18 +139,20 @@
           width: tileSize.width,
           height: tileSize.height,
         };
+        ctx.globalAlpha = 1;
 
-        // Ambil warna dari cache berdasarkan nilai tile
+        //render berdasarkan texture
         const tileValue = map[tileY][tileX];
         ctx.fillStyle = tileColorCache[tileValue] || tileColorCache.default;
-
-        // ambil tile yang sesuai dengan posisi mouse klik, bisa menggunakan map[tileX][tileY]
-        if (mouse.isMouseClick && isRectCollide(tile, mouse)) {
-          ctx.fillStyle = "#ff0000";
-          console.log(`tile= ${tileX},${tileY}  clicked`);
-        }
-
         ctx.fillRect(tile.x, tile.y, tile.width, tile.height);
+
+        //render lokasi tile yang terkena mouse
+        if(isRectCollide(tile, mouse)){
+          ctx.globalAlpha = 0.5;
+          ctx.strokeStyle ="#eeeeee"
+          ctx.strokeRect(tile.x, tile.y, tile.width, tile.height);
+        }
+        
       }
     }
 

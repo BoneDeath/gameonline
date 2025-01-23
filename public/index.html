@@ -87,7 +87,7 @@
     mouse.x = e.clientX;
     mouse.y = e.clientY;
     if(isMouseClick){
-      socket.emit("click_tile",mouse);
+      socket.emit("click_tile",{mouse,my_id});
     }
   }
 

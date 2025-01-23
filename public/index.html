@@ -86,9 +86,6 @@
     mouse.isClicked = isMouseClick;
     mouse.x = e.clientX;
     mouse.y = e.clientY;
-    if(isMouseClick){
-      socket.emit("click_tile",{mouse,my_id});
-    }
   }
 
   //camera resolver
@@ -151,6 +148,10 @@
           ctx.globalAlpha = 0.5;
           ctx.strokeStyle ="#eeeeee"
           ctx.strokeRect(tile.x, tile.y, tile.width, tile.height);
+        }
+
+        if(mouse.isClicked && isRectCollide(tile,mouse)){
+          socket.emit("click_tile",{tileX,tileY})
         }
         
       }
@@ -221,7 +222,8 @@
 
   //when data received from request
   socket.on("update", (data) => {
-    players = data;
+    players = data.players;
+    map= data.map;
     latency = Math.ceil(performance.now() - startTime);
     updateCamera();
   });

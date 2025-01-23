@@ -43,13 +43,16 @@ module.exports = (io) => {
     });
 
     //create new player if join request
-    socket.on("click_tile", (mouse) => {
-      console.log(mouse);
+    socket.on("click_tile", (tile) => {
+      console.log(tile)
+      
+      //change map data to selected item
+      map[tile.tileY][tile.tileX]=2;
     });
 
     //send players data updater
     socket.on("update", () => {
-      io.emit("update", players);
+      io.emit("update", {players,map});
     });
 
     socket.on("move", (data) => {

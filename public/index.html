@@ -30,20 +30,20 @@
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
-  worldTiles = { x: 100, y: 60 };
-  tileSize = {
+  let worldTiles = { x: 100, y: 60 };
+  let tileSize = {
     width: 40,
     height: 40,
   };
-  world = {
-    width: worldTiles.x * tileSize.width,
-    height: worldTiles.y * tileSize.height,
+  let world = {
+    width: 4000, //tileSize.width*worldTiles.x
+    height: 2400, //tilesSize.height*worldTiles.y
   };
-  let map = generateWorldMap();
+  let map = [[]];
 
-  players = [];
-  camera = { x: 0, y: 0, width: canvas.width, height: canvas.height };
-  mouse = {
+  let players = [];
+  let camera = { x: 0, y: 0, width: canvas.width, height: canvas.height };
+  let mouse = {
     x: 0,
     y: 0,
     width: 0,
@@ -155,46 +155,6 @@
     ctx.fillRect(mouse.x, mouse.y, mouse.width, mouse.height);
   }
 
-  // Fungsi untuk membuat dan memodifikasi peta
-  function generateWorldMap() {
-    const sky = 20;
-    const rocks = 30 * 3;
-    const lavas = 30 * 6;
-    const dirtStartY = 20;
-    const rockStartY = 21; // Mengubah startY untuk rock menjadi 21
-    const lavaStartY = 40; // Mengubah startY untuk lava menjadi 51
-
-    // Membuat peta kosong
-    const map = Array.from({ length: worldTiles.y }, () =>
-      Array(worldTiles.x).fill(0)
-    );
-
-    // Menambahkan lapisan tanah (dirt) di bagian bawah peta
-    for (let y = dirtStartY; y < worldTiles.y; y++) {
-      for (let x = 0; x < worldTiles.x; x++) {
-        map[y][x] = 1; // Dirt
-      }
-    }
-
-    // Menambahkan blok batu (rock) secara acak di area yang sesuai
-    for (let i = 0; i < rocks; i++) {
-      const randomX = Math.floor(Math.random() * worldTiles.x);
-      const randomY =
-        Math.floor(Math.random() * (worldTiles.y - rockStartY)) + rockStartY;
-      map[randomY][randomX] = 2; // Rock
-    }
-
-    // Menambahkan blok lava secara acak di area yang sesuai
-    for (let i = 0; i < lavas; i++) {
-      const randomX = Math.floor(Math.random() * worldTiles.x);
-      const randomY =
-        Math.floor(Math.random() * (worldTiles.y - lavaStartY)) + lavaStartY;
-      map[randomY][randomX] = 3; // Lava
-    }
-
-    return map;
-  }
-
   //render all players to canvas
   function render_players() {
     players.forEach((data) => {
@@ -235,6 +195,7 @@
 
   //send join to server to create new player
   socket.emit("join", my_id);
+  socket.emit("load_world", "default");
 
   //get server response for firstime
   socket.on("server", (msg) => {
@@ -242,8 +203,10 @@
   });
 
   //get server response for firstime
-  socket.on("world", (data) => {
-    world = data;
+  socket.on("load_world", (data) => {
+    map = data;
+    requestAnimationFrame(update);
+    setInterval(requestServerUpdate, 20);
   });
 
   //get server response for firstime
@@ -257,7 +220,4 @@
     latency = Math.ceil(performance.now() - startTime);
     updateCamera();
   });
-
-  requestAnimationFrame(update);
-  setInterval(requestServerUpdate, 20);
 </script>

@@ -12,6 +12,7 @@
 <canvas id="canvas"></canvas>
 
 <script>
+  const showTileDebug = false;
   const socket = io();
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
@@ -32,8 +33,8 @@
 
   let worldTiles = { x: 100, y: 60 };
   let tileSize = {
-    width: 40,
-    height: 40,
+    width: 60,
+    height: 60,
   };
   let world = {
     width: 4000, //tileSize.width*worldTiles.x
@@ -84,8 +85,8 @@
   //mouse data updater
   function updateMouseEvent(e, isMouseClick) {
     mouse.isClicked = isMouseClick;
-    mouse.x = e.clientX;
-    mouse.y = e.clientY;
+    mouse.x = e.clientX-tileSize.width/2;
+    mouse.y = e.clientY-tileSize.height/2;
   }
 
   //camera resolver
@@ -114,9 +115,9 @@
     ctx.fillText(`id: ${my_id} speed: ${latency}ms`, 11, 50);
   }
 
-  //world renderer
-  function drawWorld() {
-    //hanya render tile yang didalam kamera yang dilooping dari map[][]
+  function getTileOnScreen() {
+    //ambil tile yang didalam kamera yang dilooping dari map[][]
+    let tile = [];
     const startX = Math.max(0, Math.floor(camera.x / tileSize.width));
     const startY = Math.max(0, Math.floor(camera.y / tileSize.height));
     const endX = Math.min(
@@ -130,30 +131,56 @@
 
     for (let tileY = startY; tileY < endY; tileY++) {
       for (let tileX = startX; tileX < endX; tileX++) {
-        const tile = {
+        tile.push({
           x: tileX * tileSize.width - camera.x,
           y: tileY * tileSize.height - camera.y,
-          width: tileSize.width,
-          height: tileSize.height,
-        };
-        ctx.globalAlpha = 1;
+          tileX,
+          tileY,
+        });
+      }
+    }
+    return tile;
+  }
 
-        //render berdasarkan texture
-        const tileValue = map[tileY][tileX];
-        ctx.fillStyle = tileColorCache[tileValue] || tileColorCache.default;
-        ctx.fillRect(tile.x, tile.y, tile.width, tile.height);
+  function drawTile(tile) {
+    const tileId = map[tile.tileY][tile.tileX];
+    ctx.fillStyle = tileColorCache[tileId] || tileColorCache.default;
+    ctx.fillRect(tile.x, tile.y, tileSize.width, tileSize.height);
 
-        //render lokasi tile yang terkena mouse
-        if(isRectCollide(tile, mouse)){
-          ctx.globalAlpha = 0.5;
-          ctx.strokeStyle ="#eeeeee"
-          ctx.strokeRect(tile.x, tile.y, tile.width, tile.height);
-        }
+    if (!showTileDebug) return;
 
-        if(mouse.isClicked && isRectCollide(tile,mouse)){
-          socket.emit("click_tile",{tileX,tileY})
-        }
-        
+    ctx.fillStyle = "#00ff00";
+    ctx.strokeStyle = "#00ff00";
+    ctx.strokeRect(tile.x, tile.y, tileSize.width, tileSize.height);
+
+    const text = tile.tileX + "," + tile.tileY;
+    ctx.font = "7px arial";
+    ctx.fillText(
+      text,
+      tile.x + tileSize.width / 2 - ctx.measureText(text).width / 2,
+      tile.y + tileSize.height / 2 + 3.5
+    );
+  }
+
+  //world renderer
+  function drawWorld() {
+    const tiles = getTileOnScreen();
+
+    for (let i = 0; i < tiles.length; i++) {
+      const tile = tiles[i];
+
+      //render berdasarkan texture
+      drawTile(tile);
+
+      //render lokasi tile yang terkena mouse
+      if (isRectCollide(tile, mouse)) {
+        ctx.strokeStyle = "#000000";
+        ctx.strokeRect(tile.x, tile.y, tileSize.width, tileSize.height);
+      }
+
+      // Jika mouse diklik dan ada kolisi
+      if (mouse.isClicked && isRectCollide(tile, mouse)) {
+        socket.emit("click_tile", tile);
       }
     }
 
@@ -183,10 +210,10 @@
   //rect collider detection
   function isRectCollide(target1, target2) {
     return (
-      target1.x < target2.x + target2.width && // Kanan target1 tidak melewati kiri target2
-      target1.x + target1.width > target2.x && // Kiri target1 tidak melewati kanan target2
-      target1.y < target2.y + target2.height && // Bawah target1 tidak melewati atas target2
-      target1.y + target1.height > target2.y // Atas target1 tidak melewati bawah target2
+      target1.x < target2.x + tileSize.width && // Kanan target1 tidak melewati kiri target2
+      target1.x + tileSize.width > target2.x && // Kiri target1 tidak melewati kanan target2
+      target1.y < target2.y + tileSize.height && // Bawah target1 tidak melewati atas target2
+      target1.y + tileSize.height > target2.y // Atas target1 tidak melewati bawah target2
     );
   }
 
@@ -223,7 +250,7 @@
   //when data received from request
   socket.on("update", (data) => {
     players = data.players;
-    map= data.map;
+    map = data.map;
     latency = Math.ceil(performance.now() - startTime);
     updateCamera();
   });

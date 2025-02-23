@@ -1,8 +1,8 @@
 const players = [];
 worldTiles = { x: 100, y: 60 };
 let tileSize = {
-  width: 40,
-  height: 40,
+  width: 60,
+  height: 60,
 };
 world = {
   width: 4000, //tileSize.width*worldTiles.x
@@ -89,12 +89,11 @@ function updatePlayerPosition(id, move) {
 
 // Fungsi untuk membuat dan memodifikasi peta
 function generateWorldMap() {
-  const sky = 20;
   const rocks = 30 * 3;
-  const lavas = 30 * 6;
+  const lavas = 20 * 6;
   const dirtStartY = 20;
   const rockStartY = 21; // Mengubah startY untuk rock menjadi 21
-  const lavaStartY = 40; // Mengubah startY untuk lava menjadi 51
+  const lavaStartY = 57; // Mengubah startY untuk lava menjadi 51
 
   // Membuat peta kosong
   const map = Array.from({ length: worldTiles.y }, () =>
